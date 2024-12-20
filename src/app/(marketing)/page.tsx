@@ -1,6 +1,10 @@
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { SignUpButton } from "@clerk/nextjs";
 import { ArrowRightIcon } from "lucide-react";
+import { GitLabIcon } from "./_icons/GitLabIcon";
+import { AtlassianIcon } from "./_icons/AtlassianIcon";
+import { VercelIcon } from "./_icons/VercelIcon";
 
 export default function Home() {
   return (
@@ -19,6 +23,42 @@ export default function Home() {
             Let`s start for free <ArrowRightIcon className="size-5" />
           </Button>
         </SignUpButton>
+      </section>
+      <section className="bg-primary text-primary-foreground">
+        <div className="container py-16 flex flex-col gap-16 px-8 md:px-16">
+          <h2 className="text-3xl text-center text-balance">
+            Trusted by these top world companies:
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-16">
+            <Link href="https://about.gitlab.com/">
+              <GitLabIcon />
+            </Link>
+            <Link href="https://www.atlassian.com/">
+              <AtlassianIcon />
+            </Link>
+            <Link href="https://vercel.com/">
+              <VercelIcon />
+            </Link>
+            <Link href="https://about.gitlab.com/">
+              <GitLabIcon />
+            </Link>
+            <Link href="https://www.atlassian.com/">
+              <AtlassianIcon />
+            </Link>
+            <Link href="https://vercel.com/">
+              <VercelIcon />
+            </Link>
+            <Link href="https://about.gitlab.com/">
+              <GitLabIcon />
+            </Link>
+            <Link href="https://www.atlassian.com/">
+              <AtlassianIcon />
+            </Link>
+            <Link href="https://vercel.com/">
+              <VercelIcon />
+            </Link>
+          </div>
+        </div>
       </section>
     </>
   );
