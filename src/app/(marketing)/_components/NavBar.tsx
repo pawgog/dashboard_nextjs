@@ -9,7 +9,7 @@ export default function NavBar() {
         <Link href="/" className="mr-auto">
           <BrandLogo />
         </Link>
-        <Link href="#" className="text-lg">
+        <Link href="#pricing" className="text-lg">
           Pricing
         </Link>
         <Link href="#" className="text-lg">
