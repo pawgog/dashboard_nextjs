@@ -1,10 +1,18 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { SignUpButton } from "@clerk/nextjs";
 import { ArrowRightIcon } from "lucide-react";
 import { GitLabIcon } from "./_icons/GitLabIcon";
 import { AtlassianIcon } from "./_icons/AtlassianIcon";
 import { VercelIcon } from "./_icons/VercelIcon";
+import { subscriptionTiersInOrder } from "../data/subscriptionTiers";
 
 export default function Home() {
   return (
@@ -60,6 +68,37 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <section id="pricing" className="px-8 py-16 bg-accent/5">
+        <h2 className="text-4xl text-center text-balance font-semibold mb-8">
+          Pricing for membership levels
+        </h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 max-w-screen-xl mx-auto">
+          {subscriptionTiersInOrder.map((tier) => (
+            <PriceCard key={tier.name} {...tier} />
+          ))}
+        </div>
+      </section>
     </>
+  );
+}
+
+function PriceCard({
+  name,
+  price,
+  maxNumberOfVisits,
+}: (typeof subscriptionTiersInOrder)[number]) {
+  return (
+    <Card>
+      <CardHeader>
+        <div className="text-accent font-semibold mb-8">{name}</div>
+        <CardTitle className="text-xl font-bold">${price / 100}</CardTitle>
+        <CardDescription>{maxNumberOfVisits} pricing visit/mo</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <SignUpButton>
+          <Button>Get started</Button>
+        </SignUpButton>
+      </CardContent>
+    </Card>
   );
 }
