@@ -1,14 +1,17 @@
 import Link from "next/link";
+import { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { SignUpButton } from "@clerk/nextjs";
-import { ArrowRightIcon } from "lucide-react";
+import { ArrowRightIcon, CheckIcon } from "lucide-react";
 import { GitLabIcon } from "./_icons/GitLabIcon";
 import { AtlassianIcon } from "./_icons/AtlassianIcon";
 import { VercelIcon } from "./_icons/VercelIcon";
@@ -65,6 +68,9 @@ export default function Home() {
             <Link href="https://vercel.com/">
               <VercelIcon />
             </Link>
+            <Link href="https://about.gitlab.com/">
+              <GitLabIcon />
+            </Link>
           </div>
         </div>
       </section>
@@ -86,7 +92,13 @@ function PriceCard({
   name,
   price,
   maxNumberOfVisits,
+  maxNumberOfProducts,
+  canAccessAnalytics,
+  canCustomizeBanner,
+  canRemoveBranding,
 }: (typeof subscriptionTiersInOrder)[number]) {
+  const isMostPopular = name === "Standrad";
+
   return (
     <Card>
       <CardHeader>
@@ -96,9 +108,39 @@ function PriceCard({
       </CardHeader>
       <CardContent>
         <SignUpButton>
-          <Button>Get started</Button>
+          <Button
+            className="text-lg w-full rounded-lg"
+            variant={isMostPopular ? "accent" : "default"}
+          >
+            Get started
+          </Button>
         </SignUpButton>
       </CardContent>
+      <CardFooter className="flex flex-col gap-4 items-start">
+        <Feature className="font-bold">
+          {maxNumberOfProducts}{" "}
+          {maxNumberOfProducts === 1 ? "product" : "products"}
+        </Feature>
+        <Feature>Marketing discount</Feature>
+        {canAccessAnalytics && <Feature>Access to analytics</Feature>}
+        {canRemoveBranding && <Feature>Removing branding</Feature>}
+        {canCustomizeBanner && <Feature>Banner customize</Feature>}
+      </CardFooter>
     </Card>
+  );
+}
+
+function Feature({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("flex items-center gap-2", className)}>
+      <CheckIcon className="size-4 stroke-accent bg-accent/25 rounded-full p-0.5" />
+      {children}
+    </div>
   );
 }
