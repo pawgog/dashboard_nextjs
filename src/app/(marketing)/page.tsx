@@ -16,6 +16,7 @@ import { GitLabIcon } from "./_icons/GitLabIcon";
 import { AtlassianIcon } from "./_icons/AtlassianIcon";
 import { VercelIcon } from "./_icons/VercelIcon";
 import { subscriptionTiersInOrder } from "../data/subscriptionTiers";
+import { formatCompactNumber } from "../lib/formatters";
 
 export default function Home() {
   return (
@@ -104,7 +105,9 @@ function PriceCard({
       <CardHeader>
         <div className="text-accent font-semibold mb-8">{name}</div>
         <CardTitle className="text-xl font-bold">${price / 100}</CardTitle>
-        <CardDescription>{maxNumberOfVisits} pricing visit/mo</CardDescription>
+        <CardDescription>
+          {formatCompactNumber(maxNumberOfVisits)} pricing visit/mo
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <SignUpButton>
