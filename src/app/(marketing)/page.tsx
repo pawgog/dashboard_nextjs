@@ -17,6 +17,7 @@ import { AtlassianIcon } from "./_icons/AtlassianIcon";
 import { VercelIcon } from "./_icons/VercelIcon";
 import { subscriptionTiersInOrder } from "../data/subscriptionTiers";
 import { formatCompactNumber } from "../lib/formatters";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function Home() {
   return (
@@ -85,6 +86,22 @@ export default function Home() {
           ))}
         </div>
       </section>
+      <footer className="container pt-16 pb-8 flex flex-col sm:flex-row gap-8 sm:gap-4 justify-between items-start">
+        <Link href="/">
+          <BrandLogo />
+        </Link>
+        <div className="flex flex-col sm:flex-row gap-8">
+          <div className="flex flex-col gap-8">
+            <FooterLinkGroup
+              title="Help"
+              links={[
+                { label: "Marketing deal", href: "#" },
+                { label: "Contact", href: "#" },
+              ]}
+            />
+          </div>
+        </div>
+      </footer>
     </>
   );
 }
@@ -144,6 +161,27 @@ function Feature({
     <div className={cn("flex items-center gap-2", className)}>
       <CheckIcon className="size-4 stroke-accent bg-accent/25 rounded-full p-0.5" />
       {children}
+    </div>
+  );
+}
+
+function FooterLinkGroup({
+  title,
+  links,
+}: {
+  title: string;
+  links: { label: string; href: string }[];
+}) {
+  return (
+    <div className="flex flex-col gap-4">
+      <h3 className="font-semibold">{title}</h3>
+      <ul className="flex flex-col gap-2 text-sm">
+        {links.map(({ label, href }) => (
+          <li key={label}>
+            <Link href={href}>{label}</Link>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
