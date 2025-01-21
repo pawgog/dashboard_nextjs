@@ -1,6 +1,5 @@
-import { subscriptionTiers, TierNames } from "@/app/data/subscriptionTiers";
 import { relations } from "drizzle-orm";
-import { boolean, index, pgEnum, pgTable, primaryKey, real, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, pgTable, real, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const ProductTable = pgTable('products', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -61,3 +60,41 @@ export const ProductViewTable = pgTable("product_views", {
     .notNull()
     .defaultNow(),
 });
+
+export const productViewRelations = relations(ProductViewTable, ({ one }) => ({
+  product: one(ProductTable, {
+    fields: [ProductViewTable.productId],
+    references: [ProductTable.id],
+  }),
+  country: one(CountryTable, {
+    fields: [ProductViewTable.countryId],
+    references: [CountryTable.id],
+  }),
+}))
+
+export const CountryTable = pgTable("countries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull().unique(),
+  code: text("code").notNull().unique(),
+  countryGroupId: uuid("country_group_id")
+    .notNull()
+    .references(() => CountryGroupTable.id, { onDelete: "cascade" }),
+    createdAt: timestamp('created_at', {withTimezone: true}).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', {withTimezone: true}).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
+export const CountryGroupTable = pgTable("country_groups", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull().unique(),
+  recommendedDiscountPercentage: real("recommended_discount_percentage"),
+  createdAt: timestamp('created_at', {withTimezone: true}).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', {withTimezone: true}).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
+export const countryRelations = relations(CountryTable, ({ many, one }) => ({
+  countryGroups: one(CountryGroupTable, {
+    fields: [CountryTable.countryGroupId],
+    references: [CountryGroupTable.id],
+  }),
+  productViews: many(ProductViewTable),
+}));
