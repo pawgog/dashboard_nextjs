@@ -33,3 +33,5 @@ export const subscriptionTiersInOrder = [
   subscriptionTiers.Standard,
   subscriptionTiers.Premium
 ] as const
+
+export type TierNames = keyof typeof subscriptionTiers
