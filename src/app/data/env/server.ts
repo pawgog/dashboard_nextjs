@@ -5,6 +5,7 @@ export const env = createEnv({
   emptyStringAsUndefined: true,
   server: {
     CLERK_SECRET_KEY: z.string(),
+    CLERK_WEBHOOK_SECRET: z.string(),
     DATABASE_URL: z.string().url()
   },
   experimental__runtimeEnv: process.env
