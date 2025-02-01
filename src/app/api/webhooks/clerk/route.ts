@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
 import { env } from '@/app/data/env/server'
 import { createUserSubscription } from '@/server/db/subscription'
+import { deleteUser } from '@/server/db/users'
 
 export async function POST(req: Request) {
   const wh = new Webhook(env.CLERK_WEBHOOK_SECRET)
@@ -40,6 +41,11 @@ export async function POST(req: Request) {
     case "user.created": {
       await createUserSubscription({clerkUserId: event.data.id, tier: "Basic"});
       break;
+    }
+    case "user.deleted": {
+      if (event.data.id != null) {
+        await deleteUser(event.data.id)
+      }
     } 
   }
 
