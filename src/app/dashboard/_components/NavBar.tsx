@@ -4,7 +4,7 @@ import { UserButton } from "@clerk/nextjs";
 
 export default function NavBar() {
   return (
-    <header className="flex py-4 shadow fixed top-0 w-full z-10 bg-background/95">
+    <header className="flex py-4 shadow bg-background">
       <nav className="flex items-center gap-10 container font-semibold">
         <Link className="mr-auto" href="/dashboard">
           <BrandLogo />
