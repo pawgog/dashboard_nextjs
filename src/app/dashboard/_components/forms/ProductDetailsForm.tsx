@@ -12,14 +12,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-
-const productDetailsSchema = z.object({
-  name: z.string(),
-});
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { productDetailsSchema } from "@/schemas/products";
 
 export function ProductDetailsForm() {
   const form = useForm<z.infer<typeof productDetailsSchema>>({
     resolver: zodResolver(productDetailsSchema),
+    defaultValues: {
+      name: "",
+      url: "",
+      description: "",
+    },
   });
 
   async function onSubmit(values: z.infer<typeof productDetailsSchema>) {
@@ -46,6 +50,37 @@ export function ProductDetailsForm() {
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="url"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Enter your website url</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Product description </FormLabel>
+              <FormControl>
+                <Textarea className="min-h-20 resize-none" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="self-end">
+          <Button disabled={form.formState.isSubmitting} type="submit">
+            Save
+          </Button>
         </div>
       </form>
     </Form>
