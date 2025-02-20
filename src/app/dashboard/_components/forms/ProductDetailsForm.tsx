@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import {
   Form,
   FormControl,
@@ -15,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { productDetailsSchema } from "@/schemas/products";
+import { createProduct } from "@/server/actions/products";
 
 export function ProductDetailsForm() {
   const form = useForm<z.infer<typeof productDetailsSchema>>({
@@ -27,7 +29,19 @@ export function ProductDetailsForm() {
   });
 
   async function onSubmit(values: z.infer<typeof productDetailsSchema>) {
-    console.log(values);
+    const data = await createProduct(values);
+
+    if (data?.message) {
+      if (data.error) {
+        toast.error("Error", {
+          description: data.message,
+        });
+      } else {
+        toast.success("Success", {
+          description: data.message,
+        });
+      }
+    }
   }
 
   return (
