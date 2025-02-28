@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AddToSiteProductModalContent } from "./AddToSiteProductModalContent";
+import { DeleteProductAlertDialogContent } from "./DeleteProductAlertDialogContent";
 
 export function ProductGrid({
   products,
@@ -78,6 +79,7 @@ export function ProductCard({
                   </AlertDialogTrigger>
                 </DropdownMenuContent>
               </DropdownMenu>
+              <DeleteProductAlertDialogContent id={id} />
             </AlertDialog>
             <AddToSiteProductModalContent id={id} />
           </Dialog>
