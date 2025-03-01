@@ -6,6 +6,7 @@ export type ValidTags = ReturnType<typeof getGlobalTag> | ReturnType<typeof getU
 export const CACHE_TAGS = {
   products: "products",
   productViews: "productViews",
+  subscription: "subscription",
 } as const
 
 export function getGlobalTag(tag: keyof typeof CACHE_TAGS) {
