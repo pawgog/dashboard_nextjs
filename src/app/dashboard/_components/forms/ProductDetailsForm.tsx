@@ -18,14 +18,25 @@ import { Button } from "@/components/ui/button";
 import { productDetailsSchema } from "@/schemas/products";
 import { createProduct } from "@/server/actions/products";
 
-export function ProductDetailsForm() {
+export function ProductDetailsForm({
+  product,
+}: {
+  product?: {
+    id: string;
+    name: string;
+    description: string | null;
+    url: string;
+  };
+}) {
   const form = useForm<z.infer<typeof productDetailsSchema>>({
     resolver: zodResolver(productDetailsSchema),
-    defaultValues: {
-      name: "",
-      url: "",
-      description: "",
-    },
+    defaultValues: product
+      ? { ...product, description: product.description ?? "" }
+      : {
+          name: "",
+          url: "",
+          description: "",
+        },
   });
 
   async function onSubmit(values: z.infer<typeof productDetailsSchema>) {

@@ -1,6 +1,6 @@
 import { db } from "@/drizzle/db";
 import { ProductCustomizationTable, ProductTable } from "@/drizzle/schema";
-import { CACHE_TAGS, dbCache, getUserTag, revalidateDbCache } from "@/lib/cache";
+import { CACHE_TAGS, dbCache, getIdTag, getUserTag, revalidateDbCache } from "@/lib/cache";
 import { and, eq } from "drizzle-orm";
 
 export function getProducts(userId: string, { limit }: {limit?: number}) {
@@ -9,11 +9,23 @@ export function getProducts(userId: string, { limit }: {limit?: number}) {
   return cacheFn(userId, { limit })
 }
 
+export function getProduct({ id, userId }: { id: string, userId: string }) {
+  const cacheFn = dbCache(getProductInternal, {tags: [getIdTag(id, CACHE_TAGS.products)]})
+
+  return cacheFn({ id, userId })
+}
+
 function getProductsInternal(userId: string, { limit }: {limit?: number}) {
   return db.query.ProductTable.findMany({
     where: ({ clerkUserId }, { eq }) => eq(clerkUserId, userId),
     orderBy: ({ createdAt }, { desc }) => desc(createdAt),
     limit
+  })
+}
+
+function getProductInternal({ id, userId }: { id: string, userId: string }) {
+  return db.query.ProductTable.findFirst({
+    where: ({ clerkUserId, id: idTab }, { eq, and }) => and(eq(clerkUserId, userId), eq(idTab, id)),
   })
 }
 
