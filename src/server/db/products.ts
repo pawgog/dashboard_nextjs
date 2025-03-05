@@ -51,6 +51,20 @@ export async function createProduct(data: typeof ProductTable.$inferInsert) {
   return newProduct;
 }
 
+export async function updateProduct(data: Partial<typeof ProductTable.$inferInsert>, { id, userId } : { id: string, userId: string }) {
+  const { rowCount } = await db.update(ProductTable).set(data).where(and(eq(ProductTable.clerkUserId, userId), eq(ProductTable.id, id)));
+
+  if (rowCount > 0) {
+    revalidateDbCache({
+      tag: CACHE_TAGS.products,
+      userId,
+      id,
+    })
+  }
+
+  return rowCount > 0
+}
+
 export async function deleteProduct({ id, userId }: {
   id: string
   userId: string
