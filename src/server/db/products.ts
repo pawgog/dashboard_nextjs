@@ -1,6 +1,6 @@
 import { db } from "@/drizzle/db";
 import { ProductCustomizationTable, ProductTable } from "@/drizzle/schema";
-import { CACHE_TAGS, dbCache, getIdTag, getUserTag, revalidateDbCache } from "@/lib/cache";
+import { CACHE_TAGS, dbCache, getGlobalTag, getIdTag, getUserTag, revalidateDbCache } from "@/lib/cache";
 import { and, eq } from "drizzle-orm";
 
 export function getProducts(userId: string, { limit }: {limit?: number}) {
@@ -13,6 +13,21 @@ export function getProduct({ id, userId }: { id: string, userId: string }) {
   const cacheFn = dbCache(getProductInternal, {tags: [getIdTag(id, CACHE_TAGS.products)]})
 
   return cacheFn({ id, userId })
+}
+
+export function getProductCountryGroups({ productId, userId }: {
+  productId: string
+  userId: string
+}) {
+  const cacheFn = dbCache(getProductCountryGroupsInternal, {
+    tags: [
+      getIdTag(productId, CACHE_TAGS.products),
+      getGlobalTag(CACHE_TAGS.countries),
+      getGlobalTag(CACHE_TAGS.countryGroups),
+    ],
+  })
+
+  return cacheFn({ productId, userId })
 }
 
 function getProductsInternal(userId: string, { limit }: {limit?: number}) {
@@ -82,4 +97,41 @@ export async function deleteProduct({ id, userId }: {
   }
 
   return rowCount > 0
+}
+
+async function getProductCountryGroupsInternal({ userId, productId }: {
+  userId: string
+  productId: string
+}) {
+  const product = await getProduct({ id: productId, userId })
+  if (product == null) return []
+
+  const data = await db.query.CountryGroupTable.findMany({
+    with: {
+      countries: {
+        columns: {
+          name: true,
+          code: true,
+        },
+      },
+      countryGroupDiscounts: {
+        columns: {
+          coupon: true,
+          discountPercentage: true,
+        },
+        where: ({ productId: id }, { eq }) => eq(id, productId),
+        limit: 1,
+      },
+    },
+  })
+
+  return data.map(group => {
+    return {
+      id: group.id,
+      name: group.name,
+      recommendedDiscountPercentage: group.recommendedDiscountPercentage,
+      countries: group.countries,
+      discount: group.countryGroupDiscounts.at(0),
+    }
+  })
 }
