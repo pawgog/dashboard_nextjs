@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import ReactCountryFlag from "react-country-flag";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -16,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { productCountryDiscountsSchema } from "@/schemas/products";
+import { updateCountryDiscounts } from "@/server/actions/products";
 
 export function CountryDiscountsForm({
   productId,
@@ -53,8 +55,22 @@ export function CountryDiscountsForm({
     },
   });
 
-  async function onSubmit() {
-    console.log("Submit", productId);
+  async function onSubmit(
+    values: z.infer<typeof productCountryDiscountsSchema>
+  ) {
+    const data = await updateCountryDiscounts(productId, values);
+
+    if (data?.message) {
+      if (data.error) {
+        toast.error("Error", {
+          description: data.message,
+        });
+      } else {
+        toast.success("Success", {
+          description: data.message,
+        });
+      }
+    }
   }
 
   return (
@@ -97,7 +113,7 @@ export function CountryDiscountsForm({
                             className="w-24"
                             {...field}
                             type="number"
-                            value={field.value ?? ""}
+                            value={field.value ?? 0}
                             onChange={(e) =>
                               field.onChange(e.target.valueAsNumber)
                             }

@@ -14,14 +14,16 @@ import { getProduct, getProductCountryGroups } from "@/server/db/products";
 import { CountryDiscountsForm } from "@/app/dashboard/_components/forms/CountryDiscountForm";
 
 export default async function EditProductPage({
-  params: { productId },
-  searchParams: { tab = "details" },
+  params,
+  searchParams,
 }: {
   params: { productId: string };
   searchParams: { tab?: string };
 }) {
   const { userId, redirectToSignIn } = await auth();
   if (userId == null) return redirectToSignIn();
+  const { productId } = await params;
+  const { tab = "details" } = await searchParams;
 
   const product = await getProduct({ id: productId, userId });
   if (product == null) return notFound();
