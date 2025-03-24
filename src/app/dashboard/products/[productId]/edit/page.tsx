@@ -10,8 +10,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getProduct, getProductCountryGroups } from "@/server/db/products";
+import {
+  getProduct,
+  getProductCountryGroups,
+  getProductCustomization,
+} from "@/server/db/products";
 import { CountryDiscountsForm } from "@/app/dashboard/_components/forms/CountryDiscountForm";
+import { canCustomizeBanner, canRemoveBranding } from "@/server/permissions";
+import { ProductCustomizationForm } from "@/app/dashboard/_components/forms/ProductCustomizationForm";
 
 export default async function EditProductPage({
   params,
@@ -45,7 +51,9 @@ export default async function EditProductPage({
         <TabsContent value="countries">
           <CountryTab productId={productId} userId={userId} />
         </TabsContent>
-        <TabsContent value="customization">Customization</TabsContent>
+        <TabsContent value="customization">
+          <CustomizationsTab productId={productId} userId={userId} />
+        </TabsContent>
       </Tabs>
     </PageWithBackButton>
   );
@@ -98,6 +106,33 @@ async function CountryTab({
         <CountryDiscountsForm
           productId={productId}
           countryGroups={countryGroups}
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
+async function CustomizationsTab({
+  productId,
+  userId,
+}: {
+  productId: string;
+  userId: string;
+}) {
+  const customization = await getProductCustomization({ productId, userId });
+
+  if (customization == null) return notFound();
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-xl">Banner Customization</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ProductCustomizationForm
+          canRemoveBranding={await canRemoveBranding(userId)}
+          canCustomizeBanner={await canCustomizeBanner(userId)}
+          customization={customization}
         />
       </CardContent>
     </Card>

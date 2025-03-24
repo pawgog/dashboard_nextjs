@@ -100,6 +100,20 @@ export async function deleteProduct({ id, userId }: {
   return rowCount > 0
 }
 
+export function getProductCustomization({
+  productId,
+  userId,
+}: {
+  productId: string
+  userId: string
+}) {
+  const cacheFn = dbCache(getProductCustomizationInternal, {
+    tags: [getIdTag(productId, CACHE_TAGS.products)],
+  })
+
+  return cacheFn({ productId, userId })
+}
+
 export async function updateCountryDiscounts(
   deleteGroup: { countryGroupId: string }[],
   insertGroup: (typeof CountryGroupDiscountTable.$inferInsert)[],
@@ -189,4 +203,22 @@ async function getProductCountryGroupsInternal({ userId, productId }: {
       discount: group.countryGroupDiscounts.at(0),
     }
   })
+}
+
+async function getProductCustomizationInternal({
+  userId,
+  productId,
+}: {
+  userId: string
+  productId: string
+}) {
+  const data = await db.query.ProductTable.findFirst({
+    where: ({ id, clerkUserId }, { and, eq }) =>
+      and(eq(id, productId), eq(clerkUserId, userId)),
+    with: {
+      productCustomization: true,
+    },
+  })
+
+  return data?.productCustomization
 }
