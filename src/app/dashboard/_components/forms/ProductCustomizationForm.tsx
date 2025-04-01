@@ -1,5 +1,12 @@
 "use client";
 
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+
+import { productCustomizationSchema } from "@/schemas/products";
+import { Banner } from "@/components/Banner";
 import { RequiredLabelIcon } from "@/components/RequiredLabelIcon";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,17 +18,16 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { productCustomizationSchema } from "@/schemas/products";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { updateProductCustomization } from "@/server/actions/products";
 
 export function ProductCustomizationForm({
   customization,
   canCustomizeBanner,
-}: // canRemoveBranding,
-{
+  canRemoveBranding,
+}: {
   customization: {
     productId: string;
     locationMessage: string;
@@ -42,14 +48,39 @@ export function ProductCustomizationForm({
       classPrefix: customization.classPrefix ?? "",
     },
   });
+  const formValues = form.watch();
 
   async function onSubmit(values: z.infer<typeof productCustomizationSchema>) {
-    console.log(values);
+    const data = await updateProductCustomization(
+      customization.productId,
+      values
+    );
+
+    if (data?.message) {
+      if (data.error) {
+        toast.error("Error", {
+          description: data.message,
+        });
+      } else {
+        toast.success("Success", {
+          description: data.message,
+        });
+      }
+    }
   }
 
   return (
     <>
-      <div>Banner</div>
+      <Banner
+        message={formValues.locationMessage}
+        mappings={{
+          country: "USA",
+          coupon: "HALF-OFF",
+          discount: "50",
+        }}
+        customization={formValues}
+        canRemoveBranding={canRemoveBranding}
+      />
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -79,6 +110,111 @@ export function ProductCustomizationForm({
                 </FormItem>
               )}
             />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="backgroundColor"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Background color
+                      <RequiredLabelIcon />
+                    </FormLabel>
+                    <FormControl>
+                      <Input disabled={!canCustomizeBanner} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="textColor"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Text color
+                      <RequiredLabelIcon />
+                    </FormLabel>
+                    <FormControl>
+                      <Input disabled={!canCustomizeBanner} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="fontSize"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Font size
+                      <RequiredLabelIcon />
+                    </FormLabel>
+                    <FormControl>
+                      <Input disabled={!canCustomizeBanner} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="isSticky"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sticky?</FormLabel>
+                    <FormControl>
+                      <Switch
+                        className="block"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={!canCustomizeBanner}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="bannerContainer"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Banner container
+                      <RequiredLabelIcon />
+                    </FormLabel>
+                    <FormControl>
+                      <Input disabled={!canCustomizeBanner} {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      HTML container selector where you want to place the
+                      banner. Ex: #container, .container, body
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="classPrefix"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CSS Prefix</FormLabel>
+                    <FormControl>
+                      <Input disabled={!canCustomizeBanner} {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      An optional prefix added to all CSS classes to avoid
+                      conflicts
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
           {canCustomizeBanner && (
             <div className="self-end">
