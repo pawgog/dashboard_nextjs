@@ -2,14 +2,16 @@
 
 import { z } from "zod";
 import { redirect } from "next/navigation";
-import { productCountryDiscountsSchema, productDetailsSchema } from "@/schemas/products";
+import { productCountryDiscountsSchema, productCustomizationSchema, productDetailsSchema } from "@/schemas/products";
 import { auth } from "@clerk/nextjs/server";
 import { 
   createProduct as createProductDB, 
   updateProduct as updateProductDB, 
   deleteProduct as deleteProductDB ,
+  updateProductCustomization as updateProductCustomizationDB,
   updateCountryDiscounts as updateCountryDiscountsDB
 } from "../db/products";
+import { canCustomizeBanner } from "../permissions";
 
 export async function createProduct(
   unsafeData: z.infer<typeof productDetailsSchema>
@@ -41,6 +43,26 @@ export async function updateProduct(
   const isSuccess = await updateProductDB(data, { id, userId })
 
   return { error: !isSuccess, message: isSuccess ? "Product details updated!" : errorMessage}
+}
+
+export async function updateProductCustomization(
+  id: string,
+  unsafeData: z.infer<typeof productCustomizationSchema>
+) {
+  const { userId } = await auth()
+  const { success, data } = productCustomizationSchema.safeParse(unsafeData)
+  const canCustomize = await canCustomizeBanner(userId) || true
+
+  if (!success || userId == null || !canCustomize) {
+    return {
+      error: true,
+      message: "There was an error updating your banner",
+    }
+  }
+
+  await updateProductCustomizationDB(data, { productId: id, userId })
+
+  return { error: false, message: "Banner updated" }
 }
 
 export async function deleteProduct(id: string) {
