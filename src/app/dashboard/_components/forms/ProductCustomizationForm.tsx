@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { updateProductCustomization } from "@/server/actions/products";
+import { NoPermissionCard } from "@/components/NoPermissionCard";
 
 export function ProductCustomizationForm({
   customization,
@@ -71,16 +72,23 @@ export function ProductCustomizationForm({
 
   return (
     <>
-      <Banner
-        message={formValues.locationMessage}
-        mappings={{
-          country: "USA",
-          coupon: "HALF-OFF",
-          discount: "50",
-        }}
-        customization={formValues}
-        canRemoveBranding={canRemoveBranding}
-      />
+      <div>
+        <Banner
+          message={formValues.locationMessage}
+          mappings={{
+            country: "USA",
+            coupon: "HALF-OFF",
+            discount: "50",
+          }}
+          customization={formValues}
+          canRemoveBranding={canRemoveBranding}
+        />
+      </div>
+      {!canCustomizeBanner && (
+        <div className="mt-8">
+          <NoPermissionCard />
+        </div>
+      )}
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
