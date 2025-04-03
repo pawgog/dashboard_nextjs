@@ -1,7 +1,7 @@
 import { db } from "@/drizzle/db";
 import { CountryGroupDiscountTable, ProductCustomizationTable, ProductTable } from "@/drizzle/schema";
 import { CACHE_TAGS, dbCache, getGlobalTag, getIdTag, getUserTag, revalidateDbCache } from "@/lib/cache";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, count, eq, inArray, sql } from "drizzle-orm";
 import { BatchItem } from "drizzle-orm/batch";
 
 export function getProducts(userId: string, { limit }: {limit?: number}) {
@@ -14,6 +14,14 @@ export function getProduct({ id, userId }: { id: string, userId: string }) {
   const cacheFn = dbCache(getProductInternal, {tags: [getIdTag(id, CACHE_TAGS.products)]})
 
   return cacheFn({ id, userId })
+}
+
+export function getProductCount(userId: string) {
+  const cacheFn = dbCache(getProductCountInternal, {
+    tags: [getUserTag(userId, CACHE_TAGS.products)],
+  })
+
+  return cacheFn(userId)
 }
 
 export function getProductCountryGroups({ productId, userId }: {
@@ -240,4 +248,13 @@ async function getProductCustomizationInternal({
   })
 
   return data?.productCustomization
+}
+
+async function getProductCountInternal(userId: string) {
+  const counts = await db
+    .select({ productCount: count() })
+    .from(ProductTable)
+    .where(eq(ProductTable.clerkUserId, userId))
+
+  return counts[0]?.productCount ?? 0
 }
