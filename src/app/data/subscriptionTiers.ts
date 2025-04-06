@@ -9,7 +9,7 @@ export const subscriptionTiers = {
     canRemoveBranding: false
   },
   Standard: {
-    name: "Standrad",
+    name: "Standard",
     price: 4999,
     maxNumberOfProducts: 5,
     maxNumberOfVisits: 10000,
