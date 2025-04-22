@@ -1,9 +1,12 @@
 import { Webhook } from 'svix'
 import { headers } from 'next/headers'
+import { Stripe } from "stripe"
 import { WebhookEvent } from '@clerk/nextjs/server'
 import { env } from '@/app/data/env/server'
-import { createUserSubscription } from '@/server/db/subscription'
+import { createUserSubscription, getUserSubscription } from '@/server/db/subscription'
 import { deleteUser } from '@/server/db/users'
+
+const stripe = new Stripe(env.STRIPE_SECRET_KEY)
 
 export async function POST(req: Request) {
   const wh = new Webhook(env.CLERK_WEBHOOK_SECRET)
@@ -44,9 +47,15 @@ export async function POST(req: Request) {
     }
     case "user.deleted": {
       if (event.data.id != null) {
+        const userSubscription = await getUserSubscription(event.data.id)
+        if (userSubscription?.stripeSubscriptionId != null) {
+          await stripe.subscriptions.cancel(
+            userSubscription?.stripeSubscriptionId
+          )
+        }
         await deleteUser(event.data.id)
       }
-    } 
+    }
   }
 
   return new Response('Webhook received', { status: 200 })
