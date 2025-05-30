@@ -136,7 +136,7 @@ function PricingCard({
           {maxNumberOfProducts}{" "}
           {maxNumberOfProducts === 1 ? "product" : "products"}
         </Feature>
-        <Feature>PPP discounts</Feature>
+        <Feature>Marketing discounts</Feature>
         {canCustomizeBanner && <Feature>Banner customization</Feature>}
         {canAccessAnalytics && <Feature>Advanced analytics</Feature>}
         {canRemoveBranding && <Feature>Remove Marketing App branding</Feature>}

@@ -1,6 +1,6 @@
 import { and, count, desc, eq, gte, sql } from "drizzle-orm"
 import { db } from "@/drizzle/db"
-import { CountryTable, ProductTable, ProductViewTable } from "@/drizzle/schema"
+import { CountryGroupTable, CountryTable, ProductTable, ProductViewTable } from "@/drizzle/schema"
 import { CACHE_TAGS, dbCache, getGlobalTag, getIdTag, getUserTag, revalidateDbCache } from "@/lib/cache"
 import { startOfDay, subDays } from "date-fns"
 import { tz } from "@date-fns/tz";
@@ -56,6 +56,36 @@ export function getViewsByCountryChartData({
   })
 }
 
+export function getViewsByMarketingChartData({
+  timezone,
+  productId,
+  userId,
+  interval,
+}: {
+  timezone: string
+  productId?: string
+  userId: string
+  interval: (typeof CHART_INTERVALS)[keyof typeof CHART_INTERVALS]
+}) {
+  const cacheFn = dbCache(getViewsByMarketingChartDataInternal, {
+    tags: [
+      getUserTag(userId, CACHE_TAGS.productViews),
+      productId == null
+        ? getUserTag(userId, CACHE_TAGS.products)
+        : getIdTag(productId, CACHE_TAGS.products),
+      getGlobalTag(CACHE_TAGS.countries),
+      getGlobalTag(CACHE_TAGS.countryGroups),
+    ],
+  })
+
+  return cacheFn({
+    timezone,
+    productId,
+    userId,
+    interval,
+  })
+}
+
 async function getViewsByCountryChartDataInternal({
   timezone,
   productId,
@@ -88,6 +118,49 @@ async function getViewsByCountryChartDataInternal({
     .groupBy(({ countryCode, countryName }) => [countryCode, countryName])
     .orderBy(({ views }) => desc(views))
     .limit(25)
+}
+
+async function getViewsByMarketingChartDataInternal({
+  timezone,
+  productId,
+  userId,
+  interval,
+}: {
+  timezone: string
+  productId?: string
+  userId: string
+  interval: (typeof CHART_INTERVALS)[keyof typeof CHART_INTERVALS]
+}) {
+  const startDate = startOfDay(interval.startDate, { in: tz(timezone) })
+  const productsSq = getProductSubQuery(userId, productId)
+  const productViewSq = db.$with("productViews").as(
+    db
+      .with(productsSq)
+      .select({
+        visitedAt: sql`${ProductViewTable.visitedAt} AT TIME ZONE ${timezone}`
+          .inlineParams()
+          .as("visitedAt"),
+        countryGroupId: CountryTable.countryGroupId,
+      })
+      .from(ProductViewTable)
+      .innerJoin(productsSq, eq(productsSq.id, ProductViewTable.productId))
+      .innerJoin(CountryTable, eq(CountryTable.id, ProductViewTable.countryId))
+      .where(({ visitedAt }) => gte(visitedAt, startDate))
+  )
+
+  return await db
+    .with(productViewSq)
+    .select({
+      marketingName: CountryGroupTable.name,
+      views: count(productViewSq.visitedAt),
+    })
+    .from(CountryGroupTable)
+    .leftJoin(
+      productViewSq,
+      eq(productViewSq.countryGroupId, CountryGroupTable.id)
+    )
+    .groupBy(({ marketingName }) => [marketingName])
+    .orderBy(({ marketingName }) => marketingName)
 }
 
 function getProductSubQuery(userId: string, productId: string | undefined) {

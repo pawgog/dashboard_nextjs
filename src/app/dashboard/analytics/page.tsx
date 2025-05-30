@@ -3,10 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   CHART_INTERVALS,
   getViewsByCountryChartData,
+  getViewsByMarketingChartData,
 } from "@/server/db/productViews";
 import { canAccessAnalytics } from "@/server/permissions";
 import { auth } from "@clerk/nextjs/server";
 import { ViewsByCountryChart } from "../_components/charts/ViewsByCountryChart";
+import { ViewsByMarketingChart } from "../_components/charts/ViewsByMarketingChart";
 
 export default async function AnalyticsPage({
   searchParams,
@@ -39,6 +41,12 @@ export default async function AnalyticsPage({
             userId={userId}
             productId={productId}
           />
+          <ViewsByMarketingCard
+            interval={interval}
+            timezone={timezone}
+            userId={userId}
+            productId={productId}
+          />
         </div>
       </HasPermission>
     </>
@@ -57,6 +65,23 @@ async function ViewsByCountryCard(
       </CardHeader>
       <CardContent>
         <ViewsByCountryChart chartData={chartData} />
+      </CardContent>
+    </Card>
+  );
+}
+
+async function ViewsByMarketingCard(
+  props: Parameters<typeof getViewsByMarketingChartData>[0]
+) {
+  const chartData = await getViewsByMarketingChartData(props);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Visitors Per Marketing Group</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ViewsByMarketingChart chartData={chartData} />
       </CardContent>
     </Card>
   );
