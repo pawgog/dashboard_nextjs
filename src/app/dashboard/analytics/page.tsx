@@ -3,12 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   CHART_INTERVALS,
   getViewsByCountryChartData,
+  getViewsByDayChartData,
   getViewsByMarketingChartData,
 } from "@/server/db/productViews";
 import { canAccessAnalytics } from "@/server/permissions";
 import { auth } from "@clerk/nextjs/server";
 import { ViewsByCountryChart } from "../_components/charts/ViewsByCountryChart";
 import { ViewsByMarketingChart } from "../_components/charts/ViewsByMarketingChart";
+import { ViewsByDayChart } from "../_components/charts/ViewsByDayChart";
 
 export default async function AnalyticsPage({
   searchParams,
@@ -35,6 +37,12 @@ export default async function AnalyticsPage({
     <>
       <HasPermission permission={canAccessAnalytics} renderFallback>
         <div className="flex flex-col gap-8">
+          <ViewsByDayCard
+            interval={interval}
+            timezone={timezone}
+            userId={userId}
+            productId={productId}
+          />
           <ViewsByCountryCard
             interval={interval}
             timezone={timezone}
@@ -50,6 +58,23 @@ export default async function AnalyticsPage({
         </div>
       </HasPermission>
     </>
+  );
+}
+
+async function ViewsByDayCard(
+  props: Parameters<typeof getViewsByDayChartData>[0]
+) {
+  const chartData = await getViewsByDayChartData(props);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Visitors Per Day</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ViewsByDayChart chartData={chartData} />
+      </CardContent>
+    </Card>
   );
 }
 
