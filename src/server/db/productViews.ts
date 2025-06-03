@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, sql } from "drizzle-orm"
+import { and, count, desc, eq, gte, SQL, sql } from "drizzle-orm"
 import { db } from "@/drizzle/db"
 import { CountryGroupTable, CountryTable, ProductTable, ProductViewTable } from "@/drizzle/schema"
 import { CACHE_TAGS, dbCache, getGlobalTag, getIdTag, getUserTag, revalidateDbCache } from "@/lib/cache"
@@ -75,6 +75,34 @@ export function getViewsByMarketingChartData({
         : getIdTag(productId, CACHE_TAGS.products),
       getGlobalTag(CACHE_TAGS.countries),
       getGlobalTag(CACHE_TAGS.countryGroups),
+    ],
+  })
+
+  return cacheFn({
+    timezone,
+    productId,
+    userId,
+    interval,
+  })
+}
+
+export function getViewsByDayChartData({
+  timezone,
+  productId,
+  userId,
+  interval,
+}: {
+  timezone: string
+  productId?: string
+  userId: string
+  interval: (typeof CHART_INTERVALS)[keyof typeof CHART_INTERVALS]
+}) {
+  const cacheFn = dbCache(getViewsByDayChartDataInternal, {
+    tags: [
+      getUserTag(userId, CACHE_TAGS.productViews),
+      productId == null
+        ? getUserTag(userId, CACHE_TAGS.products)
+        : getIdTag(productId, CACHE_TAGS.products),
     ],
   })
 
@@ -163,6 +191,47 @@ async function getViewsByMarketingChartDataInternal({
     .orderBy(({ marketingName }) => marketingName)
 }
 
+async function getViewsByDayChartDataInternal({
+  timezone,
+  productId,
+  userId,
+  interval,
+}: {
+  timezone: string
+  productId?: string
+  userId: string
+  interval: (typeof CHART_INTERVALS)[keyof typeof CHART_INTERVALS]
+}) {
+  const productsSq = getProductSubQuery(userId, productId)
+  const productViewSq = db.$with("productViews").as(
+    db
+      .with(productsSq)
+      .select({
+        visitedAt: sql`${ProductViewTable.visitedAt} AT TIME ZONE ${timezone}`
+          .inlineParams()
+          .as("visitedAt"),
+        productId: productsSq.id,
+      })
+      .from(ProductViewTable)
+      .innerJoin(productsSq, eq(productsSq.id, ProductViewTable.productId))
+  )
+
+  return await db
+    .with(productViewSq)
+    .select({
+      date: interval
+        .dateGrouper(sql.raw("series"))
+        .mapWith(dateString => interval.dateFormatter(new Date(dateString))),
+      views: count(productViewSq.visitedAt),
+    })
+    .from(interval.sql)
+    .leftJoin(productViewSq, ({ date }) =>
+      eq(interval.dateGrouper(productViewSq.visitedAt), date)
+    )
+    .groupBy(({ date }) => [date])
+    .orderBy(({ date }) => date)
+}
+
 function getProductSubQuery(userId: string, productId: string | undefined) {
   return db.$with("products").as(
     db
@@ -202,15 +271,38 @@ export async function createProductView({
 
 export const CHART_INTERVALS = {
   last7Days: {
+    dateFormatter: (date: Date) => dateFormatter.format(date),
     startDate: subDays(new Date(), 7),
-    label: "Last 7 Days"
+    label: "Last 7 Days",
+    sql: sql`GENERATE_SERIES(current_date - 7, current_date, '1 day'::interval) as series`,
+    dateGrouper: (col: SQL | SQL.Aliased) =>
+      sql<string>`DATE(${col})`.inlineParams(),
   },
   last30Days: {
+    dateFormatter: (date: Date) => dateFormatter.format(date),
     startDate: subDays(new Date(), 30),
-    label: "Last 30 Days"
+    label: "Last 30 Days",
+    sql: sql`GENERATE_SERIES(current_date - 30, current_date, '1 day'::interval) as series`,
+    dateGrouper: (col: SQL | SQL.Aliased) =>
+      sql<string>`DATE(${col})`.inlineParams(),
   },
   last365Days: {
+    dateFormatter: (date: Date) => monthFormatter.format(date),
     startDate: subDays(new Date(), 365),
-    label: "Last 365 Days"
+    label: "Last 365 Days",
+    sql: sql`GENERATE_SERIES(DATE_TRUNC('month', current_date - 365), DATE_TRUNC('month', current_date), '1 month'::interval) as series`,
+    dateGrouper: (col: SQL | SQL.Aliased) =>
+      sql<string>`DATE_TRUNC('month', ${col})`.inlineParams(),
   },
 }
+
+const dateFormatter = new Intl.DateTimeFormat(undefined, {
+  dateStyle: "short",
+  timeZone: "UTC",
+})
+
+const monthFormatter = new Intl.DateTimeFormat(undefined, {
+  year: "2-digit",
+  month: "short",
+  timeZone: "UTC",
+})
