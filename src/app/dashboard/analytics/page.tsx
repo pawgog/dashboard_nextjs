@@ -11,6 +11,15 @@ import { auth } from "@clerk/nextjs/server";
 import { ViewsByCountryChart } from "../_components/charts/ViewsByCountryChart";
 import { ViewsByMarketingChart } from "../_components/charts/ViewsByMarketingChart";
 import { ViewsByDayChart } from "../_components/charts/ViewsByDayChart";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { ChevronDownIcon, Link } from "lucide-react";
+import { createURL } from "@/lib/utils";
 
 export default async function AnalyticsPage({
   searchParams,
@@ -35,6 +44,34 @@ export default async function AnalyticsPage({
 
   return (
     <>
+      <div className="mb-6 flex justify-between items-baseline">
+        <h1 className="text-3xl font-semibold">Analytics</h1>
+        <HasPermission permission={canAccessAnalytics}>
+          <div className="flex gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  {interval.label}
+                  <ChevronDownIcon className="size-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {Object.entries(CHART_INTERVALS).map(([key, value]) => (
+                  <DropdownMenuItem asChild key={key}>
+                    <Link
+                      href={createURL("/dashboard/analytics", searchParams, {
+                        interval: key,
+                      })}
+                    >
+                      {value.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </HasPermission>
+      </div>
       <HasPermission permission={canAccessAnalytics} renderFallback>
         <div className="flex flex-col gap-8">
           <ViewsByDayCard
