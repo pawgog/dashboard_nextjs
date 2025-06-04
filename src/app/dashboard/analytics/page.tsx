@@ -18,8 +18,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { ChevronDownIcon, Link } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import { createURL } from "@/lib/utils";
+import Link from "next/link";
 
 export default async function AnalyticsPage({
   searchParams,
@@ -59,9 +60,13 @@ export default async function AnalyticsPage({
                 {Object.entries(CHART_INTERVALS).map(([key, value]) => (
                   <DropdownMenuItem asChild key={key}>
                     <Link
-                      href={createURL("/dashboard/analytics", searchParams, {
-                        interval: key,
-                      })}
+                      href={createURL(
+                        "/dashboard/analytics",
+                        searchParamsObject,
+                        {
+                          interval: key,
+                        }
+                      )}
                     >
                       {value.label}
                     </Link>
