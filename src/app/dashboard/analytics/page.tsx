@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
+import { ChevronDownIcon } from "lucide-react";
 import { HasPermission } from "@/components/HasPermission";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -6,8 +9,8 @@ import {
   getViewsByDayChartData,
   getViewsByMarketingChartData,
 } from "@/server/db/productViews";
+import { getProducts } from "@/server/db/products";
 import { canAccessAnalytics } from "@/server/permissions";
-import { auth } from "@clerk/nextjs/server";
 import { ViewsByCountryChart } from "../_components/charts/ViewsByCountryChart";
 import { ViewsByMarketingChart } from "../_components/charts/ViewsByMarketingChart";
 import { ViewsByDayChart } from "../_components/charts/ViewsByDayChart";
@@ -18,9 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { ChevronDownIcon } from "lucide-react";
 import { createURL } from "@/lib/utils";
-import Link from "next/link";
 
 export default async function AnalyticsPage({
   searchParams,
@@ -74,6 +75,19 @@ export default async function AnalyticsPage({
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+            <ProductDropdown
+              userId={userId}
+              selectedProductId={productId}
+              searchParams={searchParams}
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  {timezone}
+                  <ChevronDownIcon className="size-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+            </DropdownMenu>
           </div>
         </HasPermission>
       </div>
@@ -100,6 +114,53 @@ export default async function AnalyticsPage({
         </div>
       </HasPermission>
     </>
+  );
+}
+
+async function ProductDropdown({
+  userId,
+  selectedProductId,
+  searchParams,
+}: {
+  userId: string;
+  selectedProductId?: string;
+  searchParams: Record<string, string>;
+}) {
+  const products = await getProducts(userId);
+  const searchParamsObject = await searchParams;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">
+          {products.find((p) => p.id === selectedProductId)?.name ??
+            "All Products"}
+          <ChevronDownIcon className="size-4 ml-2" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem asChild>
+          <Link
+            href={createURL("/dashboard/analytics", searchParamsObject, {
+              productId: undefined,
+            })}
+          >
+            All Products
+          </Link>
+        </DropdownMenuItem>
+        {products.map((product) => (
+          <DropdownMenuItem asChild key={product.id}>
+            <Link
+              href={createURL("/dashboard/analytics", searchParamsObject, {
+                productId: product.id,
+              })}
+            >
+              {product.name}
+            </Link>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
