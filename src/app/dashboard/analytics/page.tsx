@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { createURL } from "@/lib/utils";
+import { TimezoneDropdownMenuItem } from "../_components/TimezoneDropdownMenuItem";
 
 export default async function AnalyticsPage({
   searchParams,
@@ -87,6 +88,22 @@ export default async function AnalyticsPage({
                   <ChevronDownIcon className="size-4 ml-2" />
                 </Button>
               </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem asChild>
+                  <Link
+                    href={createURL(
+                      "/dashboard/analytics",
+                      searchParamsObject,
+                      {
+                        timezone: "UTC",
+                      }
+                    )}
+                  >
+                    UTC
+                  </Link>
+                </DropdownMenuItem>
+                <TimezoneDropdownMenuItem searchParams={searchParams} />
+              </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </HasPermission>
