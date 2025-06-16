@@ -115,10 +115,20 @@ function PriceCard({
   canCustomizeBanner,
   canRemoveBranding,
 }: (typeof subscriptionTiersInOrder)[number]) {
-  const isMostPopular = name === "Standrad";
+  const isMostPopular = name === "Standard";
 
   return (
-    <Card>
+    <Card
+      className={cn(
+        "relative shadow-none rounded-3xl overflow-hidden",
+        isMostPopular ? "border-accent border-2" : "border-none"
+      )}
+    >
+      {isMostPopular && (
+        <div className="bg-accent text-accent-foreground absolute py-1 px-10 -right-8 top-24 rotate-45 origin-top-right">
+          Most popular
+        </div>
+      )}
       <CardHeader>
         <div className="text-accent font-semibold mb-8">{name}</div>
         <CardTitle className="text-xl font-bold">${price / 100}</CardTitle>

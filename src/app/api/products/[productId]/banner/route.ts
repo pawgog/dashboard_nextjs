@@ -9,6 +9,8 @@ import { createProductView } from "@/server/db/productViews"
 import { canRemoveBranding, canShowDiscountBanner } from "@/server/permissions"
 import { Banner } from "@/components/Banner"
 
+export const runtime = "edge"
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { productId: string } }
